@@ -1,11 +1,9 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -18,25 +16,25 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  votes         Vote[]
+  accounts       Account[]
+  sessions       Session[]
+  votes          Vote[]
   proposedPlaces Place[]
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -72,22 +70,22 @@ model Place {
 }
 
 model Poll {
-  id        String       @id @default(cuid())
-  date      DateTime     @default(now())
-  active    Boolean      @default(true)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id        String   @id @default(cuid())
+  date      DateTime @default(now())
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  options   PollOption[]
+  options PollOption[]
 }
 
 model PollOption {
-  id        String   @id @default(cuid())
-  pollId    String
-  placeId   String
-  poll      Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
-  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
-  votes     Vote[]
+  id      String @id @default(cuid())
+  pollId  String
+  placeId String
+  poll    Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  votes   Vote[]
 
   @@unique([pollId, placeId])
 }
