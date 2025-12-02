@@ -11,11 +11,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: `${process.env.GOOGLE_CLIENT_SECRET}`,
     }),
   ],
+  session: { strategy: "jwt" },
   callbacks: {
-    session({ session, user }) {
+    jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+      return token;
+    },
+    session({ session, token }) {
       if (session.user) {
-        session.user.id = user.id;
-        session.user.role = user.role;
+        session.user.id = token.id as string;
+        session.user.role = token.role;
       }
       return session;
     },
