@@ -21,6 +21,12 @@ model User {
   sessions       Session[]
   votes          Vote[]
   proposedPlaces Place[]
+  role          Role      @default(USER)
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 model Account {
