@@ -107,7 +107,7 @@ export default async function Home() {
                                 </div>
                             </CardHeader>
                             <CardContent className="pt-8 space-y-6">
-                                <PollList options={activePoll.options} userId={user?.id!} />
+                                <PollList options={activePoll.options} userId={user?.id!} pollId={activePoll.id} />
                             </CardContent>
                             <CardFooter className="bg-muted/30 border-t border-white/5 py-6 flex justify-between items-center">
                                 <p className="text-sm text-muted-foreground">

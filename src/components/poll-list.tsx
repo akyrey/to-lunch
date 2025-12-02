@@ -1,8 +1,8 @@
 "use client"
 
-import { useOptimistic, useTransition } from "react"
+import { useOptimistic, useTransition, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, MapPin } from "lucide-react"
+import { CheckCircle2, MapPin, Radio } from "lucide-react"
 import { vote } from "@/app/actions"
 
 type PollOption = {
@@ -17,13 +17,50 @@ type PollOption = {
 type PollListProps = {
     options: PollOption[]
     userId: string
+    pollId: string
 }
 
-export function PollList({ options, userId }: PollListProps) {
+export function PollList({ options, userId, pollId }: PollListProps) {
     const [isPending, startTransition] = useTransition()
+    const [serverOptions, setServerOptions] = useState<PollOption[]>(options)
+    const [isConnected, setIsConnected] = useState(false)
+
+    // Listen to real-time vote updates
+    useEffect(() => {
+        const eventSource = new EventSource(`/api/votes/stream?pollId=${pollId}`)
+        
+        eventSource.onopen = () => {
+            setIsConnected(true)
+        }
+
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data)
+                if (data.options) {
+                    // Update server state with new votes
+                    setServerOptions(data.options)
+                }
+            } catch (error) {
+                console.error('Error parsing SSE data:', error)
+            }
+        }
+
+        eventSource.onerror = () => {
+            setIsConnected(false)
+            eventSource.close()
+            // Reconnect after 3 seconds
+            setTimeout(() => {
+                window.location.reload()
+            }, 3000)
+        }
+
+        return () => {
+            eventSource.close()
+        }
+    }, [pollId])
 
     const [optimisticOptions, addOptimisticVote] = useOptimistic(
-        options,
+        serverOptions, // Use server state instead of initial props
         (state, newVoteOptionId: string) => {
             return state.map((option) => {
                 // Remove existing vote if any
@@ -36,20 +73,6 @@ export function PollList({ options, userId }: PollListProps) {
 
                 // Add new vote if this is the selected option
                 if (option.id === newVoteOptionId) {
-                    // If we are toggling the same vote, we already removed it above. 
-                    // But the current logic in actions.ts seems to just toggle/re-add.
-                    // Let's assume we want to switch vote or add vote.
-                    // If the user clicked the SAME option they already voted for, 
-                    // the action might toggle it off or keep it. 
-                    // Looking at actions.ts: if existingVote, delete it. Then create new vote.
-                    // So if I click the same one, it effectively re-votes (delete then create).
-                    // Wait, if I click the SAME one, `existingVote` is found, deleted. Then `create` happens.
-                    // So it's not a toggle off. It's a "confirm vote" or "re-vote".
-                    // Actually, if I click a DIFFERENT one, `existingVote` (for the old option) is found?
-                    // No, `findFirst` in `vote` action checks for `userId` and `pollOption.poll.id`.
-                    // So it finds ANY vote by this user in this POLL.
-                    // So yes, it switches the vote.
-
                     newVotes = [...newVotes, { userId }]
                 }
 
@@ -72,6 +95,14 @@ export function PollList({ options, userId }: PollListProps) {
 
     return (
         <div className="space-y-6">
+            {/* Live Connection Indicator */}
+            <div className="flex items-center justify-center gap-2 text-sm">
+                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${isConnected ? 'bg-green-500/10 text-green-600' : 'bg-gray-500/10 text-gray-600'}`}>
+                    <Radio className={`h-3 w-3 ${isConnected ? 'animate-pulse' : ''}`} />
+                    <span className="font-medium">{isConnected ? 'Live' : 'Connecting...'}</span>
+                </div>
+            </div>
+            
             {optimisticOptions.map((option) => {
                 const hasVoted = option.votes.some((v) => v.userId === userId)
                 const voteCount = option.votes.length
