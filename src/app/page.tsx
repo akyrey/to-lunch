@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth"
 export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma"
 import { Button } from "@/components/ui/button"
-import { createPoll, vote, closePoll, handleGoogleLogin } from "./actions"
+import { createPoll, vote, closePoll, handleGoogleLogin, deletePoll } from "./actions"
 import { PollList } from "@/components/poll-list"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -113,11 +113,20 @@ export default async function Home() {
                                 <p className="text-sm text-muted-foreground">
                                     Voting closes automatically or by admin.
                                 </p>
-                                <form action={closePoll.bind(null, activePoll.id)}>
-                                    <Button variant="destructive" size="sm" className="rounded-full shadow-lg hover:shadow-destructive/25">
-                                        End Poll & Pick Winner
-                                    </Button>
-                                </form>
+                                {session.user?.role === "ADMIN" && (
+                                    <div className="flex gap-2">
+                                        <form action={deletePoll.bind(null, activePoll.id)}>
+                                            <Button variant="outline" size="sm" className="rounded-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                                                Delete Poll
+                                            </Button>
+                                        </form>
+                                        <form action={closePoll.bind(null, activePoll.id)}>
+                                            <Button variant="destructive" size="sm" className="rounded-full shadow-lg hover:shadow-destructive/25">
+                                                End Poll & Pick Winner
+                                            </Button>
+                                        </form>
+                                    </div>
+                                )}
                             </CardFooter>
                         </Card>
                     </div>
@@ -171,11 +180,17 @@ export default async function Home() {
                             It's quiet... too quiet. Start a poll to get the team moving!
                         </p>
                     </div>
-                    <form action={createPoll}>
-                        <Button size="lg" className="rounded-full px-8 py-6 text-lg shadow-xl hover:shadow-primary/25 hover:scale-105 transition-all duration-300">
-                            Start Lunch Vote
-                        </Button>
-                    </form>
+                    {session.user?.role === "ADMIN" ? (
+                        <form action={createPoll}>
+                            <Button size="lg" className="rounded-full px-8 py-6 text-lg shadow-xl hover:shadow-primary/25 hover:scale-105 transition-all duration-300">
+                                Start Lunch Vote
+                            </Button>
+                        </form>
+                    ) : (
+                        <p className="text-muted-foreground">
+                            Waiting for an admin to start a poll...
+                        </p>
+                    )}
                 </div>
             )}
         </div>
