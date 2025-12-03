@@ -18,7 +18,10 @@ export const metadata: Metadata = {
   description: "Decide where to eat with your team. Gamified, fair, and fun.",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon.png",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" }
+    ],
     apple: "/apple-touch-icon.png",
   },
   appleWebApp: {

@@ -13,10 +13,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   session: { strategy: "jwt" },
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+      }
+      // Fetch fresh points data from database
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { points: true },
+        });
+        if (dbUser) {
+          token.points = dbUser.points;
+        }
       }
       return token;
     },
@@ -24,6 +34,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role;
+        session.user.points = token.points as number;
       }
       return session;
     },

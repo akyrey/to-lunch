@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { auth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
-import { UtensilsCrossed, Trophy, History, LogOut } from "lucide-react"
+import { UtensilsCrossed, Trophy, History, LogOut, Vote } from "lucide-react"
 import { MobileMenu } from "@/components/mobile-menu"
 
 export async function Navbar() {
@@ -24,6 +24,12 @@ export async function Navbar() {
                         {/* Desktop Menu */}
                         <div className="hidden md:flex items-center gap-6">
                             <div className="flex items-center gap-1">
+                                <Link href="/">
+                                    <Button variant="ghost" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+                                        <Vote className="mr-2 h-4 w-4" />
+                                        Vote
+                                    </Button>
+                                </Link>
                                 <Link href="/places">
                                     <Button variant="ghost" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
                                         Places

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { UtensilsCrossed, Trophy, History, LogOut, Menu, MapPin } from "lucide-react"
+import { UtensilsCrossed, Trophy, History, LogOut, Menu, MapPin, Vote } from "lucide-react"
 import {
     Sheet,
     SheetContent,
@@ -41,6 +41,12 @@ export function MobileMenu({ user }: MobileMenuProps) {
                 </SheetHeader>
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col gap-2">
+                        <Link href="/" onClick={() => setOpen(false)}>
+                            <Button variant="ghost" className="w-full justify-start text-lg font-medium text-muted-foreground hover:text-primary hover:bg-primary/10">
+                                <Vote className="mr-2 h-5 w-5" />
+                                Vote
+                            </Button>
+                        </Link>
                         <Link href="/places" onClick={() => setOpen(false)}>
                             <Button variant="ghost" className="w-full justify-start text-lg font-medium text-muted-foreground hover:text-primary hover:bg-primary/10">
                                 <MapPin className="mr-2 h-5 w-5" />
