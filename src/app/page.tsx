@@ -56,8 +56,8 @@ export default async function Home() {
         )
     }
 
-    const activePoll = await prisma.poll.findFirst({
-        where: { active: true },
+    const latestPoll = await prisma.poll.findFirst({
+        orderBy: { createdAt: 'desc' },
         include: {
             options: {
                 include: {
@@ -86,7 +86,7 @@ export default async function Home() {
                 {/* Actions could go here */}
             </div>
 
-            {activePoll ? (
+            {latestPoll ? (
                 <div className="grid gap-8 md:grid-cols-[2fr_1fr]">
                     <div className="space-y-6">
                         <Card className="border-primary/20 shadow-2xl glass overflow-hidden">
@@ -95,36 +95,53 @@ export default async function Home() {
                                     <div>
                                         <CardTitle className="text-2xl flex items-center gap-2">
                                             <Clock className="h-6 w-6 text-primary" />
-                                            Active Poll
+                                            {latestPoll.active ? "Active Poll" : "Poll Results"}
                                         </CardTitle>
                                         <CardDescription className="text-base mt-1">
-                                            Vote for your favorite place today!
+                                            {latestPoll.active ? "Vote for your favorite place today!" : "Voting has ended. Here are the results."}
                                         </CardDescription>
                                     </div>
-                                    <Badge variant="secondary" className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary border-primary/20">
-                                        {new Date(activePoll.date).toLocaleDateString()}
+                                    <Badge variant={latestPoll.active ? "secondary" : "outline"} className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary border-primary/20">
+                                        {new Date(latestPoll.date).toLocaleDateString()}
+                                        {!latestPoll.active && " (Closed)"}
                                     </Badge>
                                 </div>
                             </CardHeader>
                             <CardContent className="pt-8 space-y-6">
-                                <PollList options={activePoll.options} userId={user?.id!} pollId={activePoll.id} />
+                                <PollList 
+                                    options={latestPoll.options} 
+                                    userId={user?.id!} 
+                                    pollId={latestPoll.id} 
+                                    userRole={user?.role!}
+                                    isPollActive={latestPoll.active}
+                                />
                             </CardContent>
                             <CardFooter className="bg-muted/30 border-t border-white/5 py-6 flex justify-between items-center">
                                 <p className="text-sm text-muted-foreground">
-                                    Voting closes automatically or by admin.
+                                    {latestPoll.active ? "Voting closes automatically or by admin." : "This poll is closed."}
                                 </p>
                                 {session.user?.role === "ADMIN" && (
                                     <div className="flex gap-2">
-                                        <form action={deletePoll.bind(null, activePoll.id)}>
-                                            <Button variant="outline" size="sm" className="rounded-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground">
-                                                Delete Poll
-                                            </Button>
-                                        </form>
-                                        <form action={closePoll.bind(null, activePoll.id)}>
-                                            <Button variant="destructive" size="sm" className="rounded-full shadow-lg hover:shadow-destructive/25">
-                                                End Poll & Pick Winner
-                                            </Button>
-                                        </form>
+                                        {latestPoll.active && (
+                                            <form action={deletePoll.bind(null, latestPoll.id)}>
+                                                <Button variant="outline" size="sm" className="rounded-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                                                    Delete Poll
+                                                </Button>
+                                            </form>
+                                        )}
+                                        {latestPoll.active ? (
+                                            <form action={closePoll.bind(null, latestPoll.id)}>
+                                                <Button variant="destructive" size="sm" className="rounded-full shadow-lg hover:shadow-destructive/25">
+                                                    End Poll & Pick Winner
+                                                </Button>
+                                            </form>
+                                        ) : (
+                                            <form action={createPoll}>
+                                                <Button size="sm" className="rounded-full shadow-lg hover:shadow-primary/25">
+                                                    Start New Poll
+                                                </Button>
+                                            </form>
+                                        )}
                                     </div>
                                 )}
                             </CardFooter>
@@ -175,7 +192,7 @@ export default async function Home() {
                         </div>
                     </div>
                     <div className="max-w-md space-y-2">
-                        <h2 className="text-3xl font-bold">No Active Poll</h2>
+                        <h2 className="text-3xl font-bold">No Polls Yet</h2>
                         <p className="text-muted-foreground text-lg">
                             It's quiet... too quiet. Start a poll to get the team moving!
                         </p>

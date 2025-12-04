@@ -104,6 +104,7 @@ model Vote {
   pollOption   PollOption @relation(fields: [pollOptionId], references: [id], onDelete: Cascade)
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
+  note         String?
 
   @@unique([pollOptionId, userId]) // User can only vote once per option (or maybe once per poll? Logic to enforce one vote per poll will be in app code)
 }

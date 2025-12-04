@@ -46,7 +46,7 @@ export async function createPoll() {
   revalidatePath("/");
 }
 
-export async function vote(pollOptionId: string) {
+export async function vote(pollOptionId: string, note?: string) {
   const session = await auth();
   if (!session?.user?.email) {
     throw new Error("Unauthorized");
@@ -90,6 +90,7 @@ export async function vote(pollOptionId: string) {
     data: {
       userId: user.id,
       pollOptionId,
+      note,
     },
   });
 
