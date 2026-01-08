@@ -8,7 +8,7 @@ export async function handleGoogleLogin() {
   await signIn("google", { redirectTo: "/" });
 }
 
-export async function createPoll() {
+export async function createPoll(placeIds?: string[]) {
   const session = await auth();
   if (!session?.user?.email || session.user.role !== "ADMIN") {
     throw new Error("Unauthorized");
@@ -31,10 +31,20 @@ export async function createPoll() {
     },
   });
 
-  // Add all places as options to the poll (for now, add all. Later can select)
-  const places = await prisma.place.findMany();
+  // Determine which places to add
+  let placesToAdd;
+  if (placeIds && placeIds.length > 0) {
+    placesToAdd = await prisma.place.findMany({
+      where: {
+        id: { in: placeIds },
+      },
+    });
+  } else {
+    // Fallback to all places if no specific IDs provided (or empty array)
+    placesToAdd = await prisma.place.findMany();
+  }
 
-  for (const place of places) {
+  for (const place of placesToAdd) {
     await prisma.pollOption.create({
       data: {
         pollId: poll.id,

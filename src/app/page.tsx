@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Utensils, CheckCircle2, PlusCircle, Trophy, Clock, MapPin } from "lucide-react"
+import { StartPollDialog } from "@/components/start-poll-dialog"
 import Link from "next/link"
 
 export default async function Home() {
@@ -70,6 +71,10 @@ export default async function Home() {
 
     const user = await prisma.user.findUnique({
         where: { email: session.user?.email! },
+    })
+
+    const places = await prisma.place.findMany({
+        orderBy: { name: 'asc' }
     })
 
     return (
@@ -136,11 +141,7 @@ export default async function Home() {
                                                 </Button>
                                             </form>
                                         ) : (
-                                            <form action={createPoll}>
-                                                <Button size="sm" className="rounded-full shadow-lg hover:shadow-primary/25">
-                                                    Start New Poll
-                                                </Button>
-                                            </form>
+                                            <StartPollDialog places={places} />
                                         )}
                                     </div>
                                 )}
@@ -198,11 +199,14 @@ export default async function Home() {
                         </p>
                     </div>
                     {session.user?.role === "ADMIN" ? (
-                        <form action={createPoll}>
-                            <Button size="lg" className="rounded-full px-8 py-6 text-lg shadow-xl hover:shadow-primary/25 hover:scale-105 transition-all duration-300">
-                                Start Lunch Vote
-                            </Button>
-                        </form>
+                        <StartPollDialog 
+                            places={places} 
+                            trigger={
+                                <Button size="lg" className="rounded-full px-8 py-6 text-lg shadow-xl hover:shadow-primary/25 hover:scale-105 transition-all duration-300">
+                                    Start Lunch Vote
+                                </Button>
+                            }
+                        />
                     ) : (
                         <p className="text-muted-foreground">
                             Waiting for an admin to start a poll...
