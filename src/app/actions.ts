@@ -33,15 +33,24 @@ export async function createPoll(placeIds?: string[]) {
 
   // Determine which places to add
   let placesToAdd;
-  if (placeIds && placeIds.length > 0) {
+  if (placeIds) {
+    if (placeIds.length === 0) {
+      throw new Error("At least one place must be selected");
+    }
     placesToAdd = await prisma.place.findMany({
       where: {
         id: { in: placeIds },
       },
     });
   } else {
-    // Fallback to all places if no specific IDs provided (or empty array)
+    // Fallback to all places if no specific IDs provided
     placesToAdd = await prisma.place.findMany();
+  }
+
+  if (placesToAdd.length === 0) {
+    // Clean up the poll if no options could be added (shouldn't happen with valid IDs but safe to check)
+    await prisma.poll.delete({ where: { id: poll.id } });
+    throw new Error("No valid places found to add to the poll");
   }
 
   for (const place of placesToAdd) {
